@@ -99,7 +99,6 @@ class QueueQihu
     public function check($queueName, $cfg)
     {
         //var_dump($this->redis);
-        Logger::info('monitor', "check $queueName");
         $pid = $this->redis->hGet("qihu:queue", $queueName);
         if ($pid) {
             if (!intval($pid) || !posix_kill($pid, 0)) {
@@ -121,6 +120,7 @@ class QueueQihu
         } elseif ($pid) {
             return;
         } else {
+            Logger::info('monitor', "start $queueName");
             if (PHP_OS == 'Linux') {
                 cli_set_process_title("php:qihu {$queueName} slave");
             }
