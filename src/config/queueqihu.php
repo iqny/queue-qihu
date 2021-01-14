@@ -19,7 +19,7 @@ return [
     ],
     'queue' => [
         'test' => [
-            'class' => 'Qihu\Queue\Queue\TestQueue',
+            'class' => 'App\Queueqihu\TestQueue',
             //'queue' => 'test',
             'run' => true,
             'mod' => 'fork',
@@ -27,7 +27,7 @@ return [
             'max_exe_count' => 1000,
         ],
         'order' => [
-            'class' => 'Qihu\Queue\Queue\OrderQueue',
+            'class' => 'App\Queueqihu\OrderQueue',
             //'queue' => 'test',
             'run' => true,
             'mod' => 'fork',
