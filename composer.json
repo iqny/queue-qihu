@@ -1,0 +1,17 @@
+{
+    "name": "iqny/queue",
+    "authors": [
+        {
+            "name": "iqny",
+            "email": "2728768646@qq.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Qihu\\Queue\\": "src"
+        }
+    },
+    "require": {
+        "predis/predis": "~1.0"
+    }
+}
