@@ -1,4 +1,13 @@
 <?php
+/**
+ * https://github.com/rstgroup/php-signal-handler
+ * It is a good practice to keep php processes (i.e workers/consumers) under control.
+ * Usually, system administrators write their own scripts which ask services about current status or performs some desired actions.
+ * Usually request is sent via UNIX signals.
+ * Because amqp consume method is blocking, pcntl extension seems to be useless.
+ * php-signal-handler extension uses signal syscall, so it will work even if blocking method was executed.
+ * Some use cases are presented on extension's github page and examples are available here.
+ */
 
 namespace Qihu\Queue\Drive\Rabbitmq;
 

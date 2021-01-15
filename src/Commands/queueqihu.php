@@ -57,6 +57,11 @@ class queueqihu extends Command
                 echo 'stop success' . PHP_EOL;
                 $this->stop();
                 break;
+            case 'restart':
+                echo 'restart...' . PHP_EOL;
+                echo 'restart success' . PHP_EOL;
+                $this->restart();
+                break;
             default:
                 break;
         }
@@ -66,6 +71,10 @@ class queueqihu extends Command
     private function start($daemon)
     {
         $this->cli->run($daemon);
+    }
+    private function restart()
+    {
+        $this->cli->restart();
     }
 
     private function stop()
