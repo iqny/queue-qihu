@@ -70,7 +70,8 @@ abstract class BaseQueue
     protected function getBody()
     {
         $body = QueueHelper::getQueueClient()->get($this->queueName);
-        if (empty($body)) {
+        if (empty($body) || $body=='SQS_GET_END') {
+            $body = '';
             sleep(1);
         }
         return $body;

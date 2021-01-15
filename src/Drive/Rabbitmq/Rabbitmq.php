@@ -46,14 +46,6 @@ class Rabbitmq implements DriveInterface
 
     public function put($key, $val)
     {
-        $routingKey = $key.'_router';
-        //发送消息到交换机，并返回发送结果
-        //delivery_mode:2声明消息持久，持久的队列+持久的消息在RabbitMQ重启后才不会丢失
-        if (!is_string($val)){
-            $val = json_encode($val);
-        }
-        $this->ex->publish($val, $routingKey, AMQP_NOPARAM, array('delivery_mode' => 2));
-        //代码执行完毕后进程会自动退出
     }
 
     public function get($key)
@@ -90,6 +82,14 @@ class Rabbitmq implements DriveInterface
 
     public function append($key, $val)
     {
+        $routingKey = $key.'_router';
+        //发送消息到交换机，并返回发送结果
+        //delivery_mode:2声明消息持久，持久的队列+持久的消息在RabbitMQ重启后才不会丢失
+        if (!is_string($val)){
+            $val = json_encode($val);
+        }
+        $this->ex->publish($val, $routingKey, AMQP_NOPARAM, array('delivery_mode' => 2));
+        //代码执行完毕后进程会自动退出
         // TODO: Implement append() method.
     }
 

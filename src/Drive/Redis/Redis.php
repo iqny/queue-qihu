@@ -31,7 +31,7 @@ class Redis implements DriveInterface
     {
         $ret = $this->client->lpop($key);
         if (is_null($ret)) {
-            return 'HTTPSQS_GET_END';
+            return 'SQS_GET_END';
         }
         return $ret;
         // TODO: Implement get() method.
@@ -44,6 +44,9 @@ class Redis implements DriveInterface
 
     public function append($key, $val)
     {
+        if (!is_string($val)){
+            $val = json_encode($val);
+        }
         $ret = $this->client->rpush($key, $val);
         // TODO: Implement append() method.
         return (bool)$ret;
