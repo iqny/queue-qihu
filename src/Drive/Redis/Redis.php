@@ -3,6 +3,7 @@
 namespace Qihu\Queue\Drive\Redis;
 
 use Qihu\Queue\Drive\DriveInterface;
+use Predis\Client;
 
 class Redis implements DriveInterface
 {
@@ -55,9 +56,12 @@ class Redis implements DriveInterface
     {
         return $this->client->hGet($key, $hashKey);
     }
-    public function hDel($key){
-        return$this->client->hDel($key);
+
+    public function hDel($key)
+    {
+        return $this->client->hDel($key);
     }
+
     public function del($key)
     {
         return $this->client->del($key);
@@ -68,17 +72,17 @@ class Redis implements DriveInterface
         //实例redis
         $drive = isset($cfg['drive']) ? $cfg['drive'] : '';
         if (!empty($drive) && $drive === 'predis') {
-            $this->client = new Predis();
+            $this->client = new Client($cfg);
         } elseif (!empty($drive) && $drive === 'redis') {
             $this->client = new \Redis();
-
+            //连接redis-server
+            $this->client->pconnect($cfg['host'], $cfg['port']);
         } else {
             throw new RedisException("The config missing drive");
         }
-        //连接redis-server
-        $this->client->pconnect($cfg['host'], $cfg['port']);
+
         //设置密码
-        if (isset($cfg['password'])) {
+        if (isset($cfg['password']) && !empty($cfg['password'])) {
             $this->client->auth($cfg['password']);
         }
     }

@@ -18,8 +18,11 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Qihu\\Queue\\QueueQihuServiceProvider"
-            ]
+                "Qihu\\Queue\\QueueQihuProvider"
+            ],
+            "aliases": {
+                "QueueQihu": "Qihu\\Queue\\Facades\\QueueQihu::class"
+            }
         }
     }
 }
