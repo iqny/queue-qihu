@@ -9,6 +9,7 @@ class Redis implements DriveInterface
 {
     private $client = null;
     private $cfg = [];
+    private $key = '';
 
     public function __construct($cfg)
     {
@@ -16,7 +17,7 @@ class Redis implements DriveInterface
         $this->connect($cfg);
     }
 
-    public function ack()
+    public function ack($ok = true)
     {
         return true;
         // TODO: Implement ack() method.
@@ -27,14 +28,23 @@ class Redis implements DriveInterface
         // TODO: Implement put() method.
     }
 
-    public function get($key)
+    public function get($key, callable $callable)
     {
-        $ret = $this->client->lpop($key);
-        if (is_null($ret)) {
-            return 'SQS_GET_END';
-        }
-        return $ret;
+        $this->key = $key;
+        $callable($this, $this);
+
+
         // TODO: Implement get() method.
+    }
+
+    public function getBody()
+    {
+        return $this->client->lpop($this->key);
+    }
+
+    public function getDeliveryTag()
+    {
+        return true;
     }
 
     public function len($key)
@@ -44,7 +54,7 @@ class Redis implements DriveInterface
 
     public function append($key, $val)
     {
-        if (!is_string($val)){
+        if (!is_string($val)) {
             $val = json_encode($val);
         }
         $ret = $this->client->rpush($key, $val);
@@ -62,9 +72,9 @@ class Redis implements DriveInterface
         return $this->client->hget($key, $hashKey);
     }
 
-    public function hDel($key,$hashKey)
+    public function hDel($key, $hashKey)
     {
-        return $this->client->hdel($key,$hashKey);
+        return $this->client->hdel($key, $hashKey);
     }
 
     public function del($key)

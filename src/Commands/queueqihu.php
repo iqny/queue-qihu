@@ -13,7 +13,7 @@ class queueqihu extends Command
      *
      * @var string
      */
-    protected $signature = 'queue:qihu {commend}';
+    protected $signature = 'queue:qihu {commend} {--daemon=0}';
 
     /**
      * The console command description.
@@ -44,22 +44,18 @@ class queueqihu extends Command
     public function handle()
     {
         $commend = $this->argument('commend');
+        $daemon = $this->option('daemon');
         $this->cli = new queue($this->config);
         switch ($commend) {
             case 'start':
                 echo 'start...' . PHP_EOL;
                 echo 'start success' . PHP_EOL;
-                $this->start();
+                $this->start($daemon);
                 break;
             case 'stop':
                 echo 'stop...' . PHP_EOL;
                 echo 'stop success' . PHP_EOL;
                 $this->stop();
-                break;
-            case 'restart':
-                echo 'restart...' . PHP_EOL;
-                $this->restart();
-                echo 'restart success' . PHP_EOL;
                 break;
             default:
                 break;
@@ -67,14 +63,9 @@ class queueqihu extends Command
         //$this->cli = new QueueQihu($this->config);
     }
 
-    private function start()
+    private function start($daemon)
     {
-        $this->cli->run();
-    }
-
-    private function restart()
-    {
-        $this->cli->restart();
+        $this->cli->run($daemon);
     }
 
     private function stop()

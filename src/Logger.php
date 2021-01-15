@@ -11,7 +11,7 @@ class Logger
     public static function info($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/info/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/info/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->info($msg);
@@ -20,7 +20,7 @@ class Logger
     public static function alert($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/alert/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/alert/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->alert($name, $msg);
@@ -29,7 +29,7 @@ class Logger
     public static function notice($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/notice/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/notice/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->notice($msg);
@@ -38,7 +38,7 @@ class Logger
     public static function debug($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/debug/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/debug/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->debug($msg);
@@ -47,7 +47,7 @@ class Logger
     public static function warning($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/warning/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/warning/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->warning($msg);
@@ -56,7 +56,7 @@ class Logger
     public static function critical($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/critical/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/critical/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->critical($msg);
@@ -65,7 +65,7 @@ class Logger
     public static function emergency($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/emergency/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/emergency/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->emergency($msg);
@@ -74,7 +74,7 @@ class Logger
     public static function error($name, $msg)
     {
         $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path("logs/queue/debug/{$name}-" . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
+        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/error/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
         $log->error($msg);

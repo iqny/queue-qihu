@@ -2,8 +2,6 @@
 
 namespace Qihu\Queue;
 
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
 use Qihu\Queue\Drive\RedisFactory;
 use Qihu\Queue\Signal\Signal;
 use Illuminate\Config\Repository;
@@ -11,7 +9,6 @@ use Illuminate\Config\Repository;
 class QueueQihu
 {
     protected $cfg;
-    private $logger;
 
     /**
      * 构造方法
@@ -31,40 +28,17 @@ class QueueQihu
         array_push($this->pids, $pid);
     }
 
-    public function test()
-    {
-        /*$writer = app('log');
-        $writer->alert("消息内容");*/
-        /*$log = new \Monolog\Logger('queue');
-        $handle = new StreamHandler(storage_path('logs/queue/p-' . date('Y-m-d') . '.log'), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->info("info。。。。。。。。。。");*/
-        while (true) {
-            sleep(2);
-            Logger::info("monitor", "check 123213");
-        }
-        //QueueHelper::getQueueClient()->put('test',"aldk");
-        $ret = QueueHelper::getQueueClient()->get('test');
-        var_dump($ret);
-        return 1;//config('queueqihu');
-    }
-
-    public function restart()
-    {
-        $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
-        return posix_kill($pid, SIGHUP);
-    }
-
     public function kill()
     {
         $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
         return posix_kill($pid, SIGTERM);
     }
 
-    public function run()
+    public function run($daemon)
     {
-        $this->daemon();
+        if ($daemon) {
+            $this->daemon();
+        }
         if (PHP_OS == 'Linux') {
             cli_set_process_title("php:qihu monitor master");
         }
@@ -127,7 +101,7 @@ class QueueQihu
             $redisClient = RedisFactory::createClient($this->cfg['redis']);
             $redisClient->hSet("qihu:queue", $queueName, posix_getpid());
             $redisClient->close();
-            Worker::start($queueName, $cfg, 1);
+            Worker::start($queueName, $cfg);
         }
 
     }

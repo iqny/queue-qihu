@@ -14,6 +14,7 @@ abstract class BaseQueue
     protected $queueName = '';
     private $pStartTime;
     private $index = '';
+    private $count = 0;
 
     public function __construct($queueName)
     {
@@ -26,39 +27,46 @@ abstract class BaseQueue
 
     public function run($count = 0)
     {
+        $this->count = $count;
         while (self::$running) {
-            while (self::$running && $data = $this->getBody()) {
+            QueueHelper::getQueueClient()->get($this->queueName, function ($envelope, $queue) {
+                Signal::SetSigHandler([self::class, 'sigHandler']);
+                self::$running = false;//step 1
+                $data = $envelope->getBody();
+                if (empty($data)) {
+                    sleep(1);
+                    return;
+                }
+                self::$running = true; //step 2 用于信号退出进程
                 $this->index = md5($data . microtime(true));
                 //echo 'md5*' . $this->index . PHP_EOL;
                 //进程锁，同一数据同时只能在一个task执行
                 if (!Lock::acquire($this->index, 60, 1)) {
                     //获取锁失败
-                    continue;
+                    return;
                 }
                 $this->setData($data);
                 $ret = $this->parse();
                 Lock::release($this->index);//释放锁
                 if ($ret) {
-                    if (QueueHelper::getQueueClient()->ack()) {
+                    if ($queue->ack($envelope->getDeliveryTag())) {
                         $this->info("ack ok");
                     } else {
                         $this->info("ack fail");
                     }
                 }
-                $count--;
-                if ($count <= 0) {
+                $this->count--;
+                if ($this->count <= 0) {
                     self::$running = false;
-                    return true;
+                    exit(0);
                 }
-            }
-            Signal::SetSigHandler([self::class, 'sigHandler']);
-            $newTime = date('H', time());
-            $startTime = date('H', $this->pStartTime);
-            if (!self::$running || $newTime != $startTime) {
-                self::$running = false;
-                break;
-            }
-            sleep(1);
+                $newTime = date('H', time());
+                $startTime = date('H', $this->pStartTime);
+                if (!self::$running || $newTime != $startTime) {
+                    self::$running = false;
+                    exit(0);
+                }
+            });
         }
     }
 
@@ -69,17 +77,26 @@ abstract class BaseQueue
 
     protected function getBody()
     {
-        $body = QueueHelper::getQueueClient()->get($this->queueName);
-        if (empty($body) || $body=='SQS_GET_END') {
+        while (true) {
+            $gen = QueueHelper::getQueueClient()->get($this->queueName);
+            foreach ($gen as $value) {
+                $ret = yield $value;
+                $gen->send($ret);
+            }
+        }
+        /*if (empty($body) || $body=='SQS_GET_END') {
             $body = '';
             sleep(1);
-        }
+        }*/
         return $body;
     }
 
     public static function sigHandler($signo)
     {
-        self::$running = false;
+        if (!self::$running) {
+            //self::$running = false;
+            exit(0);
+        }
     }
 
     private function setLogMsg($msg): string

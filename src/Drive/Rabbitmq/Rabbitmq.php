@@ -8,7 +8,6 @@ class Rabbitmq implements DriveInterface
 {
 
     private $channel = null;
-    private $cfg = [];
     private $conn = null;
     private $QMAPQueue = null;
     private $getDeliveryTag = '';
@@ -16,7 +15,6 @@ class Rabbitmq implements DriveInterface
 
     public function __construct($cfg)
     {
-        $this->cfg = $cfg;
         $this->connect($cfg);
     }
 
@@ -26,7 +24,7 @@ class Rabbitmq implements DriveInterface
         $this->conn->connect();
         $this->channel = new \AMQPChannel($this->conn);//创建交换机
         $this->ex = new \AMQPExchange($this->channel);
-        $this->ex->setName($this->cfg['exchange']);
+        $this->ex->setName($cfg['exchange']);
         $this->ex->setType(AMQP_EX_TYPE_DIRECT);
         $this->ex->setFlags(AMQP_DURABLE);//持久化
         $this->ex->declareExchange();
@@ -48,30 +46,37 @@ class Rabbitmq implements DriveInterface
     {
     }
 
-    public function get($key)
+    public function get($key, callable $callable)
     {
         //声明路由键
-        $routingKey = $key.'_router';
+        $routingKey = $key . '_router';
         //echo "Exchange Status:" . $ex->declareExchange() . "\n";
         $this->QMAPQueue = new \AMQPQueue($this->channel);
         $this->QMAPQueue->setName($key);
         $this->QMAPQueue->setFlags(AMQP_DURABLE);
         $this->QMAPQueue->declareQueue();
         $this->QMAPQueue->bind($this->ex->getName(), $routingKey);
-        $messages = $this->QMAPQueue->get(AMQP_NOPARAM);
+        $this->QMAPQueue->get(AMQP_NOPARAM);
         $this->getDeliveryTag = '';
-        $body = '';
+        /*$body = '';
         if ($messages) {
             $body = $messages->getBody();
             $this->getDeliveryTag = $messages->getDeliveryTag();
         }
-        return $body;
+        return $body;*/
         //$msg = $arr->getBody();
         //var_dump($msg);
         //$res = $q->ack($arr->getDeliveryTag());
-        /*$q->consume(function ($envelope, $queue) {
-            var_dump($envelope->getBody());
+        $this->QMAPQueue->consume($callable);
+        /*$this->QMAPQueue->consume(function ($envelope, $queue) {
+            $body = $envelope->getBody();
+            //var_dump($body);
+            $this->body = $body;
+            //$ret = yield ($body);
+            //if ($ret=='success'){
             $queue->ack($envelope->getDeliveryTag());
+            //     yield $body;
+            //   }
         });*/
     }
 
@@ -82,10 +87,10 @@ class Rabbitmq implements DriveInterface
 
     public function append($key, $val)
     {
-        $routingKey = $key.'_router';
+        $routingKey = $key . '_router';
         //发送消息到交换机，并返回发送结果
         //delivery_mode:2声明消息持久，持久的队列+持久的消息在RabbitMQ重启后才不会丢失
-        if (!is_string($val)){
+        if (!is_string($val)) {
             $val = json_encode($val);
         }
         $this->ex->publish($val, $routingKey, AMQP_NOPARAM, array('delivery_mode' => 2));

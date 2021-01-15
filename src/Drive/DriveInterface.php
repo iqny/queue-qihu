@@ -20,9 +20,10 @@ interface DriveInterface
     /**
      * 队列左边获取
      * @param $key
+     * @param callable $callable
      * @return mixed
      */
-    public function get($key);
+    public function get($key,callable $callable);
 
     /**
      * 队列长度

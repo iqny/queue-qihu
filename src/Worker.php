@@ -30,11 +30,11 @@ class Worker
         $queue->run(self::$cfg['max_exe_count']);
     }
 
-    public static function start($queueName, $cfg, $workCount)
+    public static function start($queueName, $cfg)
     {
         self::$cfg = $cfg;
         while (self::$running) {
-            for ($i = 0; $i <= $workCount; $i++) {
+            for ($i = 0; $i < $cfg['worker_count']; $i++) {
                 if (!empty(self::$pids[$i]) && posix_kill(self::$pids[$i], 0)) {
                     continue;
                 } else {
