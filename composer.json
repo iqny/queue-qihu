@@ -6,12 +6,20 @@
             "email": "2728768646@qq.com"
         }
     ],
+    "require": {
+        "predis/predis": "~1.0",
+        "php": ">=7.0.0"
+    },
     "autoload": {
         "psr-4": {
             "Qihu\\Queue\\": "src"
         }
     },
-    "require": {
-        "predis/predis": "~1.0"
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Qihu\\Queue\\QueueQihuServiceProvider"
+            ]
+        }
     }
 }
