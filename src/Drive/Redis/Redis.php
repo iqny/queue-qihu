@@ -8,9 +8,11 @@ use Predis\Client;
 class Redis implements DriveInterface
 {
     private $client = null;
+    private $cfg = [];
 
     public function __construct($cfg)
     {
+        $this->cfg = $cfg;
         $this->connect($cfg);
     }
 
@@ -49,17 +51,17 @@ class Redis implements DriveInterface
 
     public function hSet($key, $hashKey, $value)
     {
-        return $this->client->hSet($key, $hashKey, $value);
+        return $this->client->hset($key, $hashKey, $value);
     }
 
     public function hGet($key, $hashKey)
     {
-        return $this->client->hGet($key, $hashKey);
+        return $this->client->hget($key, $hashKey);
     }
 
-    public function hDel($key)
+    public function hDel($key,$hashKey)
     {
-        return $this->client->hDel($key);
+        return $this->client->hdel($key,$hashKey);
     }
 
     public function del($key)
@@ -89,6 +91,8 @@ class Redis implements DriveInterface
 
     public function close()
     {
-        $this->client->close();
+        if ($this->cfg['drive'] === 'redis') {
+            $this->client->close();
+        }
     }
 }
