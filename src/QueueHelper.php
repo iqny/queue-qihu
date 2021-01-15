@@ -7,7 +7,7 @@ use Qihu\Queue\Drive\RedisFactory;
 
 class QueueHelper
 {
-    protected static $queueConnect = null;
+    private static $pool = [];
 
     /**
      * @param string $queueName
@@ -15,20 +15,20 @@ class QueueHelper
      */
     public static function getQueueClient($queueName = '')
     {
-        if (self::$queueConnect) {
-            return self::$queueConnect;
+        if (isset(self::$pool[$queueName])) {
+            return self::$pool[$queueName];
         }
         $cfg = config('queueqihu');
         $drive = $cfg['connect']['drive'];
         $drive = isset($cfg['queue'][$queueName]['drive']) && !empty($cfg['queue'][$queueName]['drive']) ? $cfg['queue'][$queueName]['drive'] : $drive;
         switch ($drive) {
             case 'rabbitmq':
-                self::$queueConnect = RabbitmqFactory::createClient($cfg[$drive]);
+                self::$pool[$queueName] = RabbitmqFactory::createClient($cfg[$drive]);
                 break;
             default:
-                self::$queueConnect = RedisFactory::createClient($cfg[$drive]);
+                self::$pool[$queueName] = RedisFactory::createClient($cfg[$drive]);
                 break;
         }
-        return self::$queueConnect;
+        return self::$pool[$queueName];
     }
 }
