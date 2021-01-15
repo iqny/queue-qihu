@@ -20,6 +20,7 @@ class QueueQihuProvider extends ServiceProvider
             __DIR__ . '/Commands/queueqihu.php' => app_path('Console/Commands/queueqihu.php'),
             __DIR__ . '/Queue/TestQueue.php' => app_path('Queueqihu/TestQueue.php'),
             __DIR__ . '/Queue/OrderQueue.php' => app_path('Queueqihu/OrderQueue.php'),
+            __DIR__ . '/Queue/LogQueue.php' => app_path('Queueqihu/LogQueue.php'),
         ]);
     }
 
