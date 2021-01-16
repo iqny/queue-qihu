@@ -65,7 +65,7 @@ class Lock
             };
             usleep(5000);
         }
-        self::close();
+        //self::close();
         return $bool;
     }
 
@@ -85,7 +85,7 @@ class Lock
                 self::$conn->multi();//开启事务
                 self::$conn->del($lockName);//删除键
                 if (!empty(self::$conn->exec())) {//如有监控到其他进程修改或修改失败，则重试
-                    self::close();
+                    //self::close();
                     return true;
                 }
             } else {//不持该锁，退出
@@ -93,7 +93,7 @@ class Lock
                 break;
             }
         }
-        self::close();
+        //self::close();
         return false;
     }
 

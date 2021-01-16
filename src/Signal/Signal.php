@@ -12,8 +12,8 @@ class Signal implements SignalInterface
     {
         // TODO: Implement sigHandler() method.
         // 安装信号处理函数
-        //pcntl_signal_dispatch();
-        declare(ticks=1);
+        pcntl_signal_dispatch();
+        //declare(ticks=1);
         if (function_exists('attach_signal')) {
             //rabbitmq 阻塞模式用该扩展才有效果
             attach_signal(SIGTERM, $signal);
