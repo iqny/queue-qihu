@@ -15,6 +15,7 @@ abstract class BaseQueue
     private $pStartTime;
     private $index = '';
     private $count = 0;
+    private static $rabbitmqExit = true;
 
     public function __construct($queueName)
     {
@@ -29,45 +30,46 @@ abstract class BaseQueue
     {
         $this->count = $count;
         while (self::$running) {
+            Signal::SetSigHandler([self::class, 'sigHandler']);
+            QueueHelper::getQueueClient($this->queueName)->get($this->queueName, function ($envelope, $queue) {
+                self::$rabbitmqExit = false; //用于信号退出进程
                 Signal::SetSigHandler([self::class, 'sigHandler']);
-                self::$running = false;//step 1
-                QueueHelper::getQueueClient($this->queueName)->get($this->queueName, function ($envelope, $queue) {
-                    Signal::SetSigHandler([self::class, 'sigHandler']);
-                    $data = $envelope->getBody();
-                    self::$running = true; //step 2 用于信号退出进程
-                    if (empty($data)) {
-                        sleep(1);
-                        return;
+                $data = $envelope->getBody();
+
+                if (empty($data)) {
+                    sleep(1);
+                    return;
+                }
+                $this->index = md5($data . microtime(true));
+                //echo 'md5*' . $this->index . PHP_EOL;
+                //进程锁，同一数据同时只能在一个task执行
+                if (!Lock::acquire($this->index, 60, 1)) {
+                    //获取锁失败
+                    return;
+                }
+                $this->setData($data);
+                $ret = $this->parse();
+                Lock::release($this->index);//释放锁
+                if ($ret) {
+                    if ($queue->ack($envelope->getDeliveryTag())) {
+                        $this->info("ack ok");
+                    } else {
+                        $this->info("ack fail");
                     }
-                    $this->index = md5($data . microtime(true));
-                    //echo 'md5*' . $this->index . PHP_EOL;
-                    //进程锁，同一数据同时只能在一个task执行
-                    if (!Lock::acquire($this->index, 60, 1)) {
-                        //获取锁失败
-                        return;
-                    }
-                    $this->setData($data);
-                    $ret = $this->parse();
-                    Lock::release($this->index);//释放锁
-                    if ($ret) {
-                        if ($queue->ack($envelope->getDeliveryTag())) {
-                            $this->info("ack ok");
-                        } else {
-                            $this->info("ack fail");
-                        }
-                    }
-                    $this->count--;
-                    if ($this->count <= 0) {
-                        self::$running = false;
-                        exit(0);
-                    }
-                    $newTime = date('H', time());
-                    $startTime = date('H', $this->pStartTime);
-                    if (!self::$running || $newTime != $startTime) {
-                        self::$running = false;
-                        exit(0);
-                    }
-                });
+                }
+                $this->count--;
+                if ($this->count <= 0) {
+                    self::$running = false;
+                    exit(0);
+                }
+                $newTime = date('H', time());
+                $startTime = date('H', $this->pStartTime);
+                if (!self::$running || $newTime != $startTime) {
+                    self::$running = false;
+                    exit(0);
+                }
+                self::$rabbitmqExit = true;//step 3 用于rabbitmq队列信号退出
+            });
         }
     }
 
@@ -78,7 +80,7 @@ abstract class BaseQueue
 
     public static function sigHandler($signo)
     {
-        if (!self::$running) {
+        if (self::$rabbitmqExit) {
             self::$running = false;
             exit(0);
         }

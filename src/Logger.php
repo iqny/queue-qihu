@@ -23,7 +23,7 @@ class Logger
         $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/alert/{$name}.log"), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
-        $log->alert($name, $msg);
+        $log->alert($msg);
     }
 
     public static function notice($name, $msg)
