@@ -4,7 +4,7 @@ namespace Qihu\Queue\Queue;
 
 use Qihu\Queue\Lock;
 use Qihu\Queue\Logger;
-use Qihu\Queue\QueueHelper;
+use Qihu\Queue\ConnPool;
 use Qihu\Queue\Signal\Signal;
 
 abstract class BaseQueue
@@ -31,8 +31,7 @@ abstract class BaseQueue
         $this->count = $count;
         while (self::$running) {
             Signal::SetSigHandler([self::class, 'sigHandler']);
-            QueueHelper::getQueueClient($this->queueName)->get($this->queueName, function ($envelope, $queue) {
-                self::$rabbitmqExit = false; //用于信号退出进程
+            ConnPool::getQueueClient($this->queueName)->get($this->queueName, function ($envelope, $queue) {
                 Signal::SetSigHandler([self::class, 'sigHandler']);
                 $data = $envelope->getBody();
 
@@ -57,6 +56,7 @@ abstract class BaseQueue
                         $this->info("ack fail");
                     }
                 }
+                self::$rabbitmqExit = false; //用于信号退出进程
                 $this->count--;
                 if ($this->count <= 0) {
                     self::$running = false;

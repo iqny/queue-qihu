@@ -27,11 +27,13 @@ class QueueQihu
     {
         array_push($this->pids, $pid);
     }
+
     public function restart()
     {
         $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
         return posix_kill($pid, SIGHUP);
     }
+
     public function kill()
     {
         $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
@@ -120,6 +122,7 @@ class QueueQihu
                 exit(0);
             case SIGHUP:
                 $this->stop();
+                $this->cfg = require config_path('queueqihu.php');//重启重新读取配置
             default:
                 break;
         }

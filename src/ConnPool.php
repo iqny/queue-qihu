@@ -5,7 +5,7 @@ namespace Qihu\Queue;
 use Qihu\Queue\Drive\RabbitmqFactory;
 use Qihu\Queue\Drive\RedisFactory;
 
-class QueueHelper
+class ConnPool
 {
     private static $pool = [];
 
