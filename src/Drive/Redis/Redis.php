@@ -10,6 +10,7 @@ class Redis implements DriveInterface
     private $client = null;
     private $cfg = [];
     private $key = '';
+    private $keyErr;
 
     public function __construct($cfg)
     {
@@ -23,14 +24,23 @@ class Redis implements DriveInterface
         // TODO: Implement ack() method.
     }
 
-    public function put($key, $val)
+    public function put($key, $val): bool
     {
-        // TODO: Implement put() method.
+        if (!is_string($val)) {
+            $val = json_encode($val);
+        }
+        $ret = $this->client->lpush($key, $val);
+        // TODO: Implement append() method.
+        return (bool)$ret;
     }
 
     public function get($key, callable $callable)
     {
+        if (!$this->client->isConnected()) {
+            $this->connect($this->cfg);
+        }
         $this->key = $key;
+        $this->keyErr = $key . '_error';
         $callable($this, $this);
 
 
@@ -39,10 +49,14 @@ class Redis implements DriveInterface
 
     public function getBody()
     {
-        return $this->client->lpop($this->key);
+       $body = $this->client->blpop([$this->key, $this->keyErr],1);
+       if (!empty($body)){
+           return $body[1];
+       }
+       return $body;
     }
 
-    public function getDeliveryTag()
+    public function getDeliveryTag(): bool
     {
         return true;
     }
@@ -52,7 +66,7 @@ class Redis implements DriveInterface
         // TODO: Implement len() method.
     }
 
-    public function append($key, $val)
+    public function append($key, $val): bool
     {
         if (!is_string($val)) {
             $val = json_encode($val);
@@ -80,6 +94,22 @@ class Redis implements DriveInterface
     public function del($key)
     {
         return $this->client->del($key);
+    }
+
+    public function set($key, $val)
+    {
+        return $this->client->set($key, $val);
+    }
+
+    public function expire($key, $tll)
+    {
+        return $this->client->expire($key, $tll);
+    }
+
+    public function exists($key)
+    {
+
+        return $this->client->exists($key);
     }
 
     public function connect($cfg)

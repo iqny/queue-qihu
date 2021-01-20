@@ -12,7 +12,7 @@ class Worker
     private static $cfg = [];
     private static $queues = [];
 
-    private static function create($queueName)
+    private static function create($queueName,$drive)
     {
         $class = self::$cfg['class'];//'Qihu\Queue\Queue\\' . ucfirst($queueName) . 'Queue';
         if (!class_exists($class)) {
@@ -20,7 +20,7 @@ class Worker
             Logger::error("$queueName", "$class not found!");
             die("$class not found!");
         }
-        $queue = new $class($queueName);
+        $queue = new $class($queueName,$drive);
         if (!$queue instanceof BaseQueue) {
             self::$running = false;
             Logger::error("$queueName", "$class not implement Qihu\Queue\Queue\BaseQueue.");
@@ -51,7 +51,7 @@ class Worker
                             cli_set_process_title("php:qihu {$queueName} worker[$i]");
                         }
                         //cli_set_process_title("superman php master process");
-                        self::create($queueName);
+                        self::create($queueName,$cfg['drive']);
                         //echo '退出';
                         exit(0);
                         //$this->work($queueName);

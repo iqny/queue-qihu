@@ -30,7 +30,7 @@ QIHU_RABBITMQ_VHOST="/"
 ```
 第四步：操作完以上步骤，在app/Queueqihu目录下编写任务
 ```
-###队列特点：
+### 队列特点：
 ```
 1、支持平滑的重启队列重新读取配置文件
 2、在默认驱动情况下，可以配置某个队列启动指定驱动[redis|rabbitmq]
@@ -39,16 +39,20 @@ QIHU_RABBITMQ_VHOST="/"
 5、可以配置队列在执行指定任务次数自动退出，防止内存溢出
 6、日志目录在storage/logs/queue，按每天创建目录，
    支持多种日志类型记录：debug|info|alert|notice|warning|critical|emergency|error
+7、使用redis驱动，可以开启失败重试。
 ```
 命令：
 ```
-php artisan queue:qihu start    开启
+php artisan queue:qihu start              启动
 ```
 ```
-php artisan queue:qihu stop     停止
+php artisan queue:qihu start --daemon=1   守护进程启动
 ```
 ```
-php artisan queue:qihu restart  重新
+php artisan queue:qihu stop               停止
+```
+```
+php artisan queue:qihu restart            重新
 ```
 
 ### Example

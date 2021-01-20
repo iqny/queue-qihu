@@ -28,13 +28,13 @@ class QueueQihu
         array_push($this->pids, $pid);
     }
 
-    public function restart()
+    public function restart(): bool
     {
         $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
         return posix_kill($pid, SIGHUP);
     }
 
-    public function kill()
+    public function kill(): bool
     {
         $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
         return posix_kill($pid, SIGTERM);
@@ -49,19 +49,19 @@ class QueueQihu
             cli_set_process_title("php:qihu monitor master");
         }
         $this->redis = RedisFactory::createClient($this->cfg['redis']);
-        //var_dump($this->cfg['queue']);
+        //为了防止多次启动
+        if ($this->checkMonitor()) {
+            die();
+        }
         $this->redis->del("qihu:queue");
         $this->redis->hSet("qihu:queue", 'monitor', posix_getpid());
-        //$ret = $redis->append('test',3);
-        //$ret = $redis->get('test');
-        //$this->redis->hSet("qihu:queue",'test',1);
-        //$ret = $this->redis->hGet('qihu:queue','test');
-        //var_dump($ret);
-        //Signal::SetSigHandler([&$this, 'sigHandler']);
         $sleepTime = 5;
+        $drive = $this->cfg['connect']['drive'];//默认驱动
         while ($this->running) {
+            $this->setMonitor();
             foreach ($this->cfg['queue'] as $queueName => $cfg) {
                 if (isset($cfg['run']) && $cfg['run']) {
+                    $this->completingCfg($cfg, $drive);
                     $this->check($queueName, $cfg);
                 }
             }
@@ -73,6 +73,13 @@ class QueueQihu
             } else {
                 Logger::warning('monitor', "process $pid exit");
             }
+        }
+    }
+
+    private function completingCfg(&$cfg, $drive)
+    {
+        if ((isset($cfg['drive']) && empty($cfg['drive'])) || !isset($cfg['drive'])) {
+            $cfg['drive'] = $drive;
         }
     }
 
@@ -119,13 +126,20 @@ class QueueQihu
         switch ($signo) {
             case SIGTERM:
                 $this->stop();
+                $this->exitClear();
                 exit(0);
             case SIGHUP:
                 $this->stop();
                 $this->cfg = require config_path('queueqihu.php');//重启重新读取配置
             default:
+                $this->exitClear();
                 break;
         }
+    }
+
+    private function exitClear()
+    {
+        $this->redis->del('monitor');
     }
 
     private function stop()
@@ -144,6 +158,17 @@ class QueueQihu
         }
     }
 
+    private function checkMonitor()
+    {
+        return $this->redis->exists('monitor');
+    }
+
+    private function setMonitor()
+    {
+        $key = 'monitor';
+        $this->redis->set($key, 1);
+        $this->redis->expire($key, 10);
+    }
 
     private function daemon()
     {

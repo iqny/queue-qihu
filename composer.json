@@ -8,7 +8,9 @@
     ],
     "require": {
         "predis/predis": "~1.0",
-        "php": ">=7.0.0"
+        "php": ">=7.0.0",
+        "ext-posix": "*",
+        "ext-pcntl": "*"
     },
     "autoload": {
         "psr-4": {

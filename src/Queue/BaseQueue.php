@@ -10,28 +10,37 @@ use Qihu\Queue\Signal\Signal;
 abstract class BaseQueue
 {
     private static $running = true;
-    protected $data = [];
+    private $data = [];
     protected $queueName = '';
     private $pStartTime;
     private $index = '';
     private $count = 0;
     private static $rabbitmqExit = true;
+    protected $failRetry = false; //是否失败重试
+    protected $failRetrySleepTime = 3; //失败后sleep多少s进入队列
+    protected $retryMaxNum = 3;//重试次数
+    protected $retryMaxNumError = 10;//进入错误队列最多重试的次数
+    private $defaultDrive;//队列启动的驱动[redis|rabbitmq]
+    private $conn;
+    private $queueError;//错误队列名
 
-    public function __construct($queueName)
+    public function __construct($queueName, $drive)
     {
         $this->queueName = $queueName;
+        $this->queueError = $queueName . '_error';
         $this->pStartTime = time();
-
+        $this->setDefaultDrive($drive);
+        $this->conn = ConnPool::getQueueClient($this->queueName);
     }
 
-    abstract function parse();
+    abstract function parse():bool;
 
     public function run($count = 0)
     {
         $this->count = $count;
         while (self::$running) {
             Signal::SetSigHandler([self::class, 'sigHandler']);
-            ConnPool::getQueueClient($this->queueName)->get($this->queueName, function ($envelope, $queue) {
+            $this->conn->get($this->queueName, function ($envelope, $queue) {
                 Signal::SetSigHandler([self::class, 'sigHandler']);
                 $data = $envelope->getBody();
 
@@ -55,6 +64,11 @@ abstract class BaseQueue
                     } else {
                         $this->info("ack fail");
                     }
+                } else {
+                    //处理失败 redis驱动才进行重试
+                    if ($this->getDefaultDrive() == 'redis') {
+                        $this->retryFail();
+                    }
                 }
                 self::$rabbitmqExit = false; //用于信号退出进程
                 $this->count--;
@@ -73,7 +87,12 @@ abstract class BaseQueue
         }
     }
 
-    protected function setData($data)
+    protected function getDate(): array
+    {
+        return $this->data;
+    }
+
+    private function setData($data)
     {
         $this->data = json_decode($data, true, JSON_UNESCAPED_UNICODE);
     }
@@ -85,6 +104,48 @@ abstract class BaseQueue
             exit(0);
         }
         self::$running = false;
+    }
+
+    private function retryFail()
+    {
+        if ($this->failRetry) {
+            if (!isset($this->data['retry_num'])) {
+                $this->data['retry_num'] = 0;
+            }
+            if ($this->data['retry_num'] <= $this->retryMaxNum) {
+                if (!empty($this->failRetrySleepTime)) {
+                    sleep($this->failRetrySleepTime);
+                }
+                //进去队列
+                ++$this->data['retry_num'];
+                $this->debug("重新加入队列: {$this->retryMaxNum}");
+                $this->conn->put($this->queueName, json_encode($this->data));
+            } else {
+                $this->debug("重试达到指定次数: {$this->data['retry_num']}");
+                if (!isset($this->data['retry_error_num'])) {
+                    $this->data['retry_error_num'] = 0;
+                }
+                if ($this->data['retry_error_num'] <= $this->retryMaxNumError) {
+                    sleep(1);
+                    //进行错误队列
+                    ++$this->data['retry_error_num'];
+                    $this->debug("加入错误队列: {$this->data['retry_error_num']}");
+                    $this->conn->put($this->queueError, json_encode($this->data));
+                } else {
+                    $this->debug("错误队列重试达到指定次数: {$this->retryMaxNumError}");
+                }
+            }
+        }
+    }
+
+    private function setDefaultDrive($drive)
+    {
+        $this->defaultDrive = $drive;
+    }
+
+    private function getDefaultDrive()
+    {
+        return $this->defaultDrive;
     }
 
     private function setLogMsg($msg): string
