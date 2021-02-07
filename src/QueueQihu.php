@@ -9,6 +9,10 @@ use Illuminate\Config\Repository;
 class QueueQihu
 {
     protected $cfg;
+    const QUEUE_MONITOR_NAME = 'qihu:queue';
+    public $running = true;
+    public $pids = [];
+    public $redis = null;
 
     /**
      * 构造方法
@@ -16,12 +20,8 @@ class QueueQihu
     public function __construct(Repository $config)
     {
         $this->cfg = $config->get('queueqihu');
+        $this->redis = RedisFactory::createClient($this->cfg['redis']);
     }
-
-    public $running = true;
-    public $pids = [];
-    public $runner = [];
-    public $redis = null;
 
     public function append($pid)
     {
@@ -30,14 +30,15 @@ class QueueQihu
 
     public function restart(): bool
     {
-        $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
-        return posix_kill($pid, SIGHUP);
+        return posix_kill($this->getMonitorPid(), SIGHUP);
     }
 
-    public function kill(): bool
+    public function kill()
     {
-        $pid = RedisFactory::createClient($this->cfg['redis'])->hGet("qihu:queue", 'monitor');
-        return posix_kill($pid, SIGTERM);
+        if (!posix_kill($this->getMonitorPid(), SIGTERM)) {
+            $this->stop();
+            exit(0);
+        }
     }
 
     public function run($daemon)
@@ -46,22 +47,20 @@ class QueueQihu
             $this->daemon();
         }
         if (PHP_OS == 'Linux') {
-            cli_set_process_title("php:qihu monitor master");
+            cli_set_process_title(sprintf("%s monitor master", self::QUEUE_MONITOR_NAME));
         }
-        $this->redis = RedisFactory::createClient($this->cfg['redis']);
         //为了防止多次启动
         if ($this->checkMonitor()) {
             die();
         }
-        $this->redis->del("qihu:queue");
-        $this->redis->hSet("qihu:queue", 'monitor', posix_getpid());
+        $this->redis->del(self::QUEUE_MONITOR_NAME);
+        $this->redis->hSet(self::QUEUE_MONITOR_NAME, 'monitor', posix_getpid());
         $sleepTime = 5;
-        $drive = $this->cfg['connect']['drive'];//默认驱动
         while ($this->running) {
             $this->setMonitor();
             foreach ($this->cfg['queue'] as $queueName => $cfg) {
                 if (isset($cfg['run']) && $cfg['run']) {
-                    $this->completingCfg($cfg, $drive);
+                    $this->completingCfg($cfg);
                     $this->check($queueName, $cfg);
                 }
             }
@@ -76,17 +75,23 @@ class QueueQihu
         }
     }
 
-    private function completingCfg(&$cfg, $drive)
+    private function completingCfg(&$cfg)
     {
         if ((isset($cfg['drive']) && empty($cfg['drive'])) || !isset($cfg['drive'])) {
-            $cfg['drive'] = $drive;
+            $cfg['drive'] = $this->cfg['connect']['drive'];//默认驱动;
         }
+        $cfg['retry_time'] = isset($this->cfg['connect']['retry_time']) && !empty($this->cfg['connect']['retry_time']) ? $this->cfg['connect']['retry_time'] : 60;
+    }
+
+    private function getMonitorPid()
+    {
+        return $this->redis->hGet(self::QUEUE_MONITOR_NAME, 'monitor');
     }
 
     public function check($queueName, $cfg)
     {
         //var_dump($this->redis);
-        $pid = $this->redis->hGet("qihu:queue", $queueName);
+        $pid = $this->redis->hGet(self::QUEUE_MONITOR_NAME, $queueName);
         if ($pid) {
             if (!intval($pid) || !posix_kill($pid, 0)) {
                 $this->start($queueName, $cfg);
@@ -112,7 +117,7 @@ class QueueQihu
                 cli_set_process_title("php:qihu {$queueName} slave");
             }
             $redisClient = RedisFactory::createClient($this->cfg['redis']);
-            $redisClient->hSet("qihu:queue", $queueName, posix_getpid());
+            $redisClient->hSet(self::QUEUE_MONITOR_NAME, $queueName, posix_getpid());
             $redisClient->close();
             Worker::start($queueName, $cfg);
         }
@@ -131,6 +136,7 @@ class QueueQihu
             case SIGHUP:
                 $this->stop();
                 $this->cfg = require config_path('queueqihu.php');//重启重新读取配置
+                break;
             default:
                 $this->exitClear();
                 break;
@@ -145,14 +151,14 @@ class QueueQihu
     private function stop()
     {
         foreach ($this->cfg['queue'] as $queueName => $cfg) {
-            $pid = $this->redis->hGet("qihu:queue", $queueName);
+            $pid = $this->redis->hGet(self::QUEUE_MONITOR_NAME, $queueName);
             if ($pid && posix_kill($pid, 0)) {
                 $ret = posix_kill($pid, SIGTERM);
                 if ($ret) {
                     Logger::warning('monitor', "send stop $pid");
                     pcntl_waitpid($pid, $status);
                     //删除redis记录
-                    $this->redis->hDel("qihu:queue", $queueName);
+                    $this->redis->hDel(self::QUEUE_MONITOR_NAME, $queueName);
                 }
             }
         }
@@ -183,6 +189,4 @@ class QueueQihu
             }
         }
     }
-
-
 }

@@ -40,6 +40,7 @@ QIHU_RABBITMQ_VHOST="/"
 6、日志目录在storage/logs/queue，按每天创建目录，
    支持多种日志类型记录：debug|info|alert|notice|warning|critical|emergency|error
 7、使用redis驱动，可以开启失败重试。
+8、rabbitmq、redis连接异常断开重启机制,可配置时间
 ```
 命令：
 ```
@@ -52,7 +53,7 @@ php artisan queue:qihu start --daemon=1   守护进程启动
 php artisan queue:qihu stop               停止
 ```
 ```
-php artisan queue:qihu restart            重新
+php artisan queue:qihu restart            重启
 ```
 
 ### Example

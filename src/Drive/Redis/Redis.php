@@ -2,8 +2,10 @@
 
 namespace Qihu\Queue\Drive\Redis;
 
+use Predis\PredisException;
 use Qihu\Queue\Drive\DriveInterface;
 use Predis\Client;
+use Qihu\Queue\Logger;
 
 class Redis implements DriveInterface
 {
@@ -117,11 +119,21 @@ class Redis implements DriveInterface
         //实例redis
         $drive = isset($cfg['drive']) ? $cfg['drive'] : '';
         if (!empty($drive) && $drive === 'predis') {
-            $this->client = new Client($cfg);
+            try {
+                $this->client = new Client($cfg);
+            }catch (PredisException $e){
+                Logger::error('Predis',$e->getMessage());
+                throw $e;
+            }
         } elseif (!empty($drive) && $drive === 'redis') {
-            $this->client = new \Redis();
             //连接redis-server
-            $this->client->pconnect($cfg['host'], $cfg['port']);
+            try {
+                $this->client = new \Redis();
+                $this->client->pconnect($cfg['host'], $cfg['port']);
+            }catch (\RedisException $e){
+                Logger::error('redis',$e->getMessage());
+                throw $e;
+            }
         } else {
             throw new RedisException("The config missing drive");
         }

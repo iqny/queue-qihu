@@ -2,6 +2,7 @@
 return [
     'connect' => [
         'drive' => env('QIHU_DRIVE', 'rabbitmq'),
+        'retry_time'=> env('QIHU_RETRY_TIME',60) //异常断开，等待指定重试拉起
     ],
     'redis' => [
         'drive' => env('QIHU_REDIS_DRIVE', 'redis'),//predis
@@ -22,7 +23,6 @@ return [
             'class' => 'App\Queueqihu\TestQueue',
             'run' => true,
             'drive' => '',
-            'mod' => 'fork',
             'worker_count' => 2,
             'max_exe_count' => 10000,
         ],
@@ -30,7 +30,6 @@ return [
             'class' => 'App\Queueqihu\OrderQueue',
             'run' => true,
             'drive' => '',
-            'mod' => 'fork',
             'worker_count' => 2,
             'max_exe_count' => 10000,
         ],
@@ -38,7 +37,6 @@ return [
             'class' => 'App\Queueqihu\LogQueue',
             'run' => true,
             'drive' => 'redis',
-            'mod' => 'fork',
             'worker_count' => 1,
             'max_exe_count' => 10000,
         ]

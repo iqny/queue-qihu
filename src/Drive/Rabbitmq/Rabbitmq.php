@@ -12,6 +12,7 @@
 namespace Qihu\Queue\Drive\Rabbitmq;
 
 use Qihu\Queue\Drive\DriveInterface;
+use Qihu\Queue\Logger;
 
 class Rabbitmq implements DriveInterface
 {
@@ -29,8 +30,13 @@ class Rabbitmq implements DriveInterface
 
     public function connect($cfg)
     {
-        $this->conn = new \AMQPConnection($cfg);
-        $this->conn->connect();
+        try{
+            $this->conn = new \AMQPConnection($cfg);
+            $this->conn->connect();
+        }catch(\AMQPConnectionException $e){
+            Logger::error('rabbitmq',$e->getMessage());
+            throw $e;
+        }
         $this->channel = new \AMQPChannel($this->conn);//创建交换机
         $this->ex = new \AMQPExchange($this->channel);
         $this->ex->setName($cfg['exchange']);
@@ -76,7 +82,11 @@ class Rabbitmq implements DriveInterface
         //$msg = $arr->getBody();
         //var_dump($msg);
         //$res = $q->ack($arr->getDeliveryTag());
-        $this->QMAPQueue->consume($callable);
+        try{
+            $this->QMAPQueue->consume($callable);
+        }catch(\AMQPException $e){
+            Logger::error('rabbitmq','['.$e->getLine().']'.$e->getMessage());
+        }
         /*$this->QMAPQueue->consume(function ($envelope, $queue) {
             $body = $envelope->getBody();
             //var_dump($body);
