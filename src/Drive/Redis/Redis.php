@@ -51,11 +51,11 @@ class Redis implements DriveInterface
 
     public function getBody()
     {
-       $body = $this->client->blpop([$this->key, $this->keyErr],1);
-       if (!empty($body)){
-           return $body[1];
-       }
-       return $body;
+        $body = $this->client->blpop([$this->key, $this->keyErr], 1);
+        if (!empty($body)) {
+            return $body[1];
+        }
+        return $body;
     }
 
     public function getDeliveryTag(): bool
@@ -121,8 +121,8 @@ class Redis implements DriveInterface
         if (!empty($drive) && $drive === 'predis') {
             try {
                 $this->client = new Client($cfg);
-            }catch (PredisException $e){
-                Logger::error('Predis',$e->getMessage());
+            } catch (PredisException $e) {
+                Logger::error('Predis', $e->getMessage());
                 throw $e;
             }
         } elseif (!empty($drive) && $drive === 'redis') {
@@ -130,8 +130,8 @@ class Redis implements DriveInterface
             try {
                 $this->client = new \Redis();
                 $this->client->pconnect($cfg['host'], $cfg['port']);
-            }catch (\RedisException $e){
-                Logger::error('redis',$e->getMessage());
+            } catch (\RedisException $e) {
+                Logger::error('redis', $e->getMessage());
                 throw $e;
             }
         } else {

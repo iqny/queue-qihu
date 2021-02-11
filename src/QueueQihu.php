@@ -81,6 +81,7 @@ class QueueQihu
             $cfg['drive'] = $this->cfg['connect']['drive'];//默认驱动;
         }
         $cfg['retry_time'] = isset($this->cfg['connect']['retry_time']) && !empty($this->cfg['connect']['retry_time']) ? $this->cfg['connect']['retry_time'] : 60;
+        $cfg['process_name'] = self::QUEUE_MONITOR_NAME;
     }
 
     private function getMonitorPid()
@@ -114,7 +115,7 @@ class QueueQihu
         } else {
             Logger::info('monitor', "start $queueName");
             if (PHP_OS == 'Linux') {
-                cli_set_process_title("php:qihu {$queueName} slave");
+                cli_set_process_title(sprintf("%s %s slave",self::QUEUE_MONITOR_NAME,$queueName));
             }
             $redisClient = RedisFactory::createClient($this->cfg['redis']);
             $redisClient->hSet(self::QUEUE_MONITOR_NAME, $queueName, posix_getpid());

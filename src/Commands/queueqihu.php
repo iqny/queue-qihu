@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Config\Repository;
 use Illuminate\Console\Command;
+use Qihu\Queue\Logger;
 use Qihu\Queue\QueueQihu as queue;
 
 class queueqihu extends Command
@@ -70,6 +71,17 @@ class queueqihu extends Command
 
     private function start($daemon)
     {
+        Logger::setLogger(function (){
+            $log = new \Monolog\Logger('test');
+            $redis = new \Redis();
+            $cfg = $this->config['queueqihu']['redis'];
+            $redis->connect($cfg['host'],$cfg['port']);
+            $redis->setOption(\Redis::OPT_READ_TIMEOUT, -1);
+            $handle = new \Monolog\Handler\RedisHandler($redis,'monolog-log');
+            $handle->setFormatter(new \Monolog\Formatter\JsonFormatter());
+            $log->pushHandler($handle);
+            return $log;
+        });
         $this->cli->run($daemon);
     }
     private function restart()

@@ -53,7 +53,7 @@ class Worker
                         continue;
                     } else {
                         if (PHP_OS == 'Linux') {
-                            cli_set_process_title("php:qihu {$queueName} worker[$i]");
+                            cli_set_process_title(sprintf("%s %s worker[%d]", $cfg['process_name'], $queueName, $i));
                         }
                         //cli_set_process_title("superman php master process");
                         self::create($queueName, $cfg['drive']);
@@ -73,6 +73,9 @@ class Worker
                     self::$createProcess = [];
                     self::$cfg['worker_count'] = self::$oldWorkerCount;
                 } else {
+                    if (count(self::$createProcess) > 2) {
+                        array_pop(self::$createProcess);
+                    }
                     sleep(2);
                 }
             } else {

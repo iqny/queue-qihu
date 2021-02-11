@@ -4,79 +4,70 @@ namespace Qihu\Queue;
 
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
+use phpDocumentor\Reflection\Types\Static_;
 
+/**
+ * @method static void info($name, $msg)
+ * @method static void alert($name, $msg)
+ * @method static void notice($name, $msg)
+ * @method static void debug($name, $msg)
+ * @method static void warning($name, $msg)
+ * @method static void critical($name, $msg)
+ * @method static void emergency($name, $msg)
+ * @method static void error($name, $msg)
+ */
 class Logger
 {
-
-    public static function info($name, $msg)
+    private static $pool = [];
+    private static $log = null;
+    private static $drive = 'default';
+    private static $callHandel = null;
+    /**
+     * @param $type
+     * @param $queue
+     * @return \Monolog\Logger
+     */
+    private static function getInstance($type, $queue): \Monolog\Logger
     {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/info/{$name}.log"), \Monolog\Logger::DEBUG);
+        switch (self::$drive) {
+            case 'default':
+                return self::defaultHandle($type,$queue);
+            default:
+                if(isset(self::$pool[$type])){
+                    return self::$pool[$type];
+                }
+                if (!is_null(self::$callHandel)){
+                    self::$pool[$type] = call_user_func(self::$callHandel);
+                }
+                return self::$pool[$type];
+        }
+    }
+    private static function defaultHandle($type,$queue): \Monolog\Logger
+    {
+        $dataUnique = date('Y-m-d');
+        $datePath = $dataUnique . "/{$type}/{$queue}";
+        if (isset(self::$pool[$dataUnique][$queue][$type]) && self::$pool[$dataUnique][$queue][$type] != null) {
+            return self::$pool[$dataUnique][$queue][$type];
+        }
+        $log = new \Monolog\Logger('qihu');
+        $handle = new StreamHandler(storage_path('logs/queue/' . $datePath . '.log'), \Monolog\Logger::DEBUG);
         $handle->setFormatter(new LineFormatter(null, null, true, true));
         $log->pushHandler($handle);
-        $log->info($msg);
+        $prevDate = date('Y-m-d', strtotime('-1 day'));
+        if (isset(self::$pool[$prevDate]) && !empty(self::$pool[$prevDate])) {
+            self::$pool[$prevDate] = [];
+        }
+        self::$pool[$dataUnique][$queue][$type] = &$log;
+        return $log;
+    }
+    public static function setLogger(callable $handle){
+        self::$drive = '';
+        self::$callHandel = $handle;
     }
 
-    public static function alert($name, $msg)
+    public static function __callStatic($name, $arguments)
     {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/alert/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->alert($msg);
-    }
-
-    public static function notice($name, $msg)
-    {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/notice/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->notice($msg);
-    }
-
-    public static function debug($name, $msg)
-    {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/debug/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->debug($msg);
-    }
-
-    public static function warning($name, $msg)
-    {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/warning/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->warning($msg);
-    }
-
-    public static function critical($name, $msg)
-    {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/critical/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->critical($msg);
-    }
-
-    public static function emergency($name, $msg)
-    {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/emergency/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->emergency($msg);
-    }
-
-    public static function error($name, $msg)
-    {
-        $log = new \Monolog\Logger('local');
-        $handle = new StreamHandler(storage_path('logs/queue/'.date('Y-m-d')."/error/{$name}.log"), \Monolog\Logger::DEBUG);
-        $handle->setFormatter(new LineFormatter(null, null, true, true));
-        $log->pushHandler($handle);
-        $log->error($msg);
+        $log = self::getInstance($name, $arguments[0]);
+        $log->$name($arguments[1]);
     }
 }

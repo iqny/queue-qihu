@@ -9,13 +9,13 @@ use Qihu\Queue\Signal\Signal;
 
 abstract class BaseQueue
 {
-    private static $running = true;
+    public static $running = true;
     private $data = [];
     protected $queueName = '';
     private $pStartTime;
     private $index = '';
     private $count = 0;
-    private static $rabbitmqExit = true;
+    public static $rabbitmqExit = true;
     protected $failRetry = false; //是否失败重试
     protected $failRetrySleepTime = 3; //失败后sleep多少s进入队列
     protected $retryMaxNum = 3;//重试次数

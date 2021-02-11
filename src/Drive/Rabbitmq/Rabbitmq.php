@@ -30,11 +30,11 @@ class Rabbitmq implements DriveInterface
 
     public function connect($cfg)
     {
-        try{
+        try {
             $this->conn = new \AMQPConnection($cfg);
             $this->conn->connect();
-        }catch(\AMQPConnectionException $e){
-            Logger::error('rabbitmq',$e->getMessage());
+        } catch (\AMQPConnectionException $e) {
+            Logger::error('rabbitmq', $e->getMessage());
             throw $e;
         }
         $this->channel = new \AMQPChannel($this->conn);//创建交换机
@@ -82,10 +82,10 @@ class Rabbitmq implements DriveInterface
         //$msg = $arr->getBody();
         //var_dump($msg);
         //$res = $q->ack($arr->getDeliveryTag());
-        try{
+        try {
             $this->QMAPQueue->consume($callable);
-        }catch(\AMQPException $e){
-            Logger::error('rabbitmq','['.$e->getLine().']'.$e->getMessage());
+        } catch (\AMQPException $e) {
+            Logger::error('rabbitmq', '[' . $e->getLine() . ']' . $e->getMessage());
         }
         /*$this->QMAPQueue->consume(function ($envelope, $queue) {
             $body = $envelope->getBody();

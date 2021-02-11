@@ -17,6 +17,7 @@ rabbitmq 支持php-amqp。如果选择rabbitmq需安装php-amqp扩展
 第三步：在.env文件添加如下配置
 QIHU_DRIVE=rabbitmq
 QIHU_REDIS_HOST=127.0.0.1
+QIHU_RETRY_TIME=20
 QIHU_REDIS_DRIVE=redis
 QIHU_REDIS_PORT=6379
 QIHU_REDIS_PASSWORD=null
