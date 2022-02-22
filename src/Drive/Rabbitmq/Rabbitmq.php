@@ -63,16 +63,18 @@ class Rabbitmq implements DriveInterface
 
     public function get($key, callable $callable)
     {
-        //声明路由键
-        $routingKey = $key . '_router';
-        //echo "Exchange Status:" . $ex->declareExchange() . "\n";
-        $this->QMAPQueue = new \AMQPQueue($this->channel);
-        $this->QMAPQueue->setName($key);
-        $this->QMAPQueue->setFlags(AMQP_DURABLE);
-        $this->QMAPQueue->declareQueue();
-        $this->QMAPQueue->bind($this->ex->getName(), $routingKey);
-        $this->QMAPQueue->get(AMQP_NOPARAM);
-        $this->getDeliveryTag = '';
+        if (!$this->QMAPQueue) {
+            //声明路由键
+            $routingKey = $key . '_router';
+            //echo "Exchange Status:" . $ex->declareExchange() . "\n";
+            $this->QMAPQueue = new \AMQPQueue($this->channel);
+            $this->QMAPQueue->setName($key);
+            $this->QMAPQueue->setFlags(AMQP_DURABLE);
+            $this->QMAPQueue->declareQueue();
+            $this->QMAPQueue->bind($this->ex->getName(), $routingKey);
+            $this->QMAPQueue->get(AMQP_NOPARAM);
+            $this->getDeliveryTag = '';
+        }
         /*$body = '';
         if ($messages) {
             $body = $messages->getBody();

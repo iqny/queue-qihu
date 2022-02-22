@@ -48,7 +48,7 @@ abstract class BaseQueue
                     sleep(1);
                     return;
                 }
-                $this->index = md5($data . microtime(true));
+                $this->index = md5($data);
                 //echo 'md5*' . $this->index . PHP_EOL;
                 //进程锁，同一数据同时只能在一个task执行
                 if (!Lock::acquire($this->index, 60, 1)) {
@@ -74,20 +74,18 @@ abstract class BaseQueue
                 $this->count--;
                 if ($this->count <= 0) {
                     self::$running = false;
-                    exit(0);
                 }
                 $newTime = date('H', time());
                 $startTime = date('H', $this->pStartTime);
                 if (!self::$running || $newTime != $startTime) {
                     self::$running = false;
-                    exit(0);
                 }
                 self::$rabbitmqExit = true;//step 3 用于rabbitmq队列信号退出
             });
         }
     }
 
-    protected function getDate(): array
+    protected function getData(): array
     {
         return $this->data;
     }

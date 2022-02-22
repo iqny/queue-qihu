@@ -71,7 +71,7 @@ class queueqihu extends Command
 
     private function start($daemon)
     {
-        Logger::setLogger(function (){
+        /*Logger::setLogger(function (){
             $log = new \Monolog\Logger('test');
             $redis = new \Redis();
             $cfg = $this->config['queueqihu']['redis'];
@@ -81,7 +81,7 @@ class queueqihu extends Command
             $handle->setFormatter(new \Monolog\Formatter\JsonFormatter());
             $log->pushHandler($handle);
             return $log;
-        });
+        });*/
         $this->cli->run($daemon);
     }
     private function restart()
