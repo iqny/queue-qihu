@@ -74,11 +74,13 @@ abstract class BaseQueue
                 $this->count--;
                 if ($this->count <= 0) {
                     self::$running = false;
+                    exit(0);
                 }
                 $newTime = date('H', time());
                 $startTime = date('H', $this->pStartTime);
                 if (!self::$running || $newTime != $startTime) {
                     self::$running = false;
+                    exit(0);
                 }
                 self::$rabbitmqExit = true;//step 3 用于rabbitmq队列信号退出
             });
