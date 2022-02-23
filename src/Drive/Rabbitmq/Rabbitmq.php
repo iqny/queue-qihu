@@ -72,7 +72,6 @@ class Rabbitmq implements DriveInterface
             $this->QMAPQueue->setFlags(AMQP_DURABLE);
             $this->QMAPQueue->declareQueue();
             $this->QMAPQueue->bind($this->ex->getName(), $routingKey);
-            $this->QMAPQueue->get(AMQP_NOPARAM);
             $this->getDeliveryTag = '';
         }
         /*$body = '';
