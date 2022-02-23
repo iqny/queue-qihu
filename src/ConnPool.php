@@ -11,9 +11,9 @@ class ConnPool
 
     /**
      * @param string $queueName
-     * @return Drive\Rabbitmq\Rabbitmq|Drive\Redis\Redis|null
+     * @return mixed|Drive\DriveInterface
      */
-    public static function getQueueClient($queueName = '')
+    public static function getQueueClient(string $queueName = '')
     {
         if (isset(self::$pool[$queueName])) {
             return self::$pool[$queueName];
