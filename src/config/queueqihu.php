@@ -17,6 +17,7 @@ return [
         'password' => env('QIHU_RABBITMQ_PASSWORD', ''),
         'exchange' => env('QIHU_RABBITMQ_EXCHANGE', 'my_exchange'),//交换机名
         'vhost' => env('QIHU_RABBITMQ_VHOST', '/'),//虚拟路径
+        'routing'=>'route',
     ],
     'rocketmq' => [
         'host' => env('QIHU_ROCKETMQ_HOST', '127.0.0.1'),
