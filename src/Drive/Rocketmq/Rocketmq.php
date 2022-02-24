@@ -80,6 +80,7 @@ class Rocketmq implements DriveInterface
 
     public function getBody()
     {
+
         try {
             $numOfMessages = $this->cfg['num_of_messages']??1;
             $waitSeconds = $this->cfg['wait_seconds']??1;
@@ -91,6 +92,7 @@ class Rocketmq implements DriveInterface
                 $this->receiptHandles[] = $message->getReceiptHandle();
                 $messageBody[] = $message->getMessageBody();
             }
+            return json_encode($messageBody,JSON_UNESCAPED_UNICODE);
         } catch (MessageNotExistException $e) {
             $this->consumer=null;
             //重新连接
@@ -100,7 +102,7 @@ class Rocketmq implements DriveInterface
         }catch (\Exception $e){
             Logger::error('rocket', $e->getMessage());
         }
-        return json_encode($messageBody,JSON_UNESCAPED_UNICODE);
+        return '';
     }
 
     public function len($key)
