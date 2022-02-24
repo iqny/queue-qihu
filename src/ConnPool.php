@@ -27,7 +27,7 @@ class ConnPool
                 self::$pool[$queueName] = RabbitmqFactory::createClient($cfg[$drive]);
                 break;
             case 'rocketmq':
-                self::$pool[$queueName] = RocketmqFactory::createClient($cfg[$drive]);
+                self::$pool[$queueName] = RocketmqFactory::createClient(array_merge($cfg['queue'][$queueName],$cfg[$drive]));
                 break;
             default:
                 self::$pool[$queueName] = RedisFactory::createClient($cfg[$drive]);

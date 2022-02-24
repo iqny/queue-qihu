@@ -22,9 +22,6 @@ return [
         'host' => env('QIHU_ROCKETMQ_HOST', '127.0.0.1'),
         'access_key'=>env('QIHU_ROCKETMQ_ACCESS_KEY',''),
         'secret_key'=>env('QIHU_ROCKETMQ_SECRET_KEY',''),
-        'instance_id'=>env('QIHU_ROCKETMQ_INSTANCE_ID',''),
-        'topic'=>env('QIHU_ROCKETMQ_TOPIC',''),
-        'group_id'=>env('QIHU_ROCKETMQ_GROUP_ID',''),
         'num_of_messages'=>env('QIHU_ROCKETMQ_NUM_OF_MESSAGES',1),//一次最多消费5条(最多可设置为16条)
         'wait_seconds'=>env('QIHU_ROCKETMQ_WAIT_SECONDS',1)//长轮询时间1秒（最多可设置为30秒）
     ],
@@ -33,6 +30,12 @@ return [
             'class' => 'App\Queueqihu\TestQueue',
             'run' => true,
             'drive' => '',
+            //如果驱动是rocketmq，以下需要配置
+            'rocketmq'=>[
+                'instance_id'=>'',
+                'topic'=>'',
+                'group_id'=>'',
+            ],
             'worker_count' => 2,
             'max_exe_count' => 10000,
         ],
@@ -40,6 +43,12 @@ return [
             'class' => 'App\Queueqihu\OrderQueue',
             'run' => true,
             'drive' => '',
+            //如果驱动是rocketmq，以下需要配置
+            'rocketmq'=>[
+                'instance_id'=>'',
+                'topic'=>'',
+                'group_id'=>'',
+            ],
             'worker_count' => 2,
             'max_exe_count' => 10000,
         ],
@@ -47,6 +56,12 @@ return [
             'class' => 'App\Queueqihu\LogQueue',
             'run' => true,
             'drive' => 'redis',
+            //如果驱动是rocketmq，以下需要配置
+            'rocketmq'=>[
+                'instance_id'=>'',
+                'topic'=>'',
+                'group_id'=>'',
+            ],
             'worker_count' => 1,
             'max_exe_count' => 10000,
         ]
