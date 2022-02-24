@@ -156,51 +156,51 @@ abstract class BaseQueue
         return sprintf("%s %s", $this->index, $msg);
     }
 
-    public function info($msg)
+    public function info($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::info($this->queueName, $msg);
+        Logger::info($this->queueName, $msg,$context);
     }
 
-    public function alert($msg)
+    public function alert($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::alert($this->queueName, $msg);
+        Logger::alert($this->queueName, $msg,$context);
     }
 
-    public function notice($msg)
+    public function notice($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
         Logger::notice($this->queueName, $msg);
     }
 
-    public function debug($msg)
+    public function debug($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::debug($this->queueName, $msg);
+        Logger::debug($this->queueName, $msg,$context);
     }
 
-    public function warning($msg)
+    public function warning($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::warning($this->queueName, $msg);
+        Logger::warning($this->queueName, $msg,$context);
     }
 
-    public function critical($msg)
+    public function critical($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::critical($this->queueName, $msg);
+        Logger::critical($this->queueName, $msg,$context);
     }
 
-    public function emergency($msg)
+    public function emergency($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::emergency($this->queueName, $msg);
+        Logger::emergency($this->queueName, $msg,$context);
     }
 
-    public function error($msg)
+    public function error($msg,$context=[])
     {
         $msg = $this->setLogMsg($msg);
-        Logger::info($this->queueName, $msg);
+        Logger::info($this->queueName, $msg,$context);
     }
 }

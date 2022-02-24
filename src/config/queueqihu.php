@@ -18,6 +18,16 @@ return [
         'exchange' => env('QIHU_RABBITMQ_EXCHANGE', 'my_exchange'),//交换机名
         'vhost' => env('QIHU_RABBITMQ_VHOST', '/'),//虚拟路径
     ],
+    'rocketmq' => [
+        'host' => env('QIHU_ROCKETMQ_HOST', '127.0.0.1'),
+        'access_key'=>env('QIHU_ROCKETMQ_ACCESS_KEY',''),
+        'secret_key'=>env('QIHU_ROCKETMQ_SECRET_KEY',''),
+        'instance_id'=>env('QIHU_ROCKETMQ_INSTANCE_ID',''),
+        'topic'=>env('QIHU_ROCKETMQ_TOPIC',''),
+        'group_id'=>env('QIHU_ROCKETMQ_GROUP_ID',''),
+        'num_of_messages'=>env('QIHU_ROCKETMQ_NUM_OF_MESSAGES',1),//一次最多消费5条(最多可设置为16条)
+        'wait_seconds'=>env('QIHU_ROCKETMQ_WAIT_SECONDS',1)//长轮询时间1秒（最多可设置为30秒）
+    ],
     'queue' => [
         'test' => [
             'class' => 'App\Queueqihu\TestQueue',

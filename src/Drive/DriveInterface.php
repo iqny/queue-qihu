@@ -7,7 +7,7 @@ interface DriveInterface
      * 确认
      * @return mixed
      */
-    public function ack();
+    public function ack($getDeliveryTag):bool;
 
     /**
      *  队列头部追加
@@ -39,4 +39,8 @@ interface DriveInterface
      * @return mixed
      */
     public function append($key,$val);
+
+    public function getDeliveryTag():bool;
+
+    public function getBody();
 }

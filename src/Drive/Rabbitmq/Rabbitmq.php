@@ -48,7 +48,7 @@ class Rabbitmq implements DriveInterface
     /**
      * @return bool|mixed
      */
-    public function ack()
+    public function ack($ok = true):bool
     {
         if ($this->getDeliveryTag) {
             return $this->QMAPQueue->ack($this->getDeliveryTag);
@@ -122,5 +122,15 @@ class Rabbitmq implements DriveInterface
     {
         $this->channel->close();
         $this->conn->disconnect();
+    }
+
+    public function getDeliveryTag(): bool
+    {
+        return true;
+    }
+
+    public function getBody()
+    {
+        // TODO: Implement getBody() method.
     }
 }

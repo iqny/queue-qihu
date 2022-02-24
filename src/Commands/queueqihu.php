@@ -71,8 +71,8 @@ class queueqihu extends Command
 
     private function start($daemon)
     {
-        /*Logger::setLogger(function (){
-            $log = new \Monolog\Logger('test');
+        /*Logger::setLogger(function ($queueName){
+            $log = new \Monolog\Logger($queueName);
             $redis = new \Redis();
             $cfg = $this->config['queueqihu']['redis'];
             $redis->connect($cfg['host'],$cfg['port']);

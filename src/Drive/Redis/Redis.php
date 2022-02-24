@@ -20,7 +20,7 @@ class Redis implements DriveInterface
         $this->connect($cfg);
     }
 
-    public function ack($ok = true)
+    public function ack($ok = true):bool
     {
         return true;
         // TODO: Implement ack() method.

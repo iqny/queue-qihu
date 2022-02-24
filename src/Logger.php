@@ -7,14 +7,14 @@ use Monolog\Handler\StreamHandler;
 use phpDocumentor\Reflection\Types\Static_;
 
 /**
- * @method static void info($name, $msg)
- * @method static void alert($name, $msg)
- * @method static void notice($name, $msg)
- * @method static void debug($name, $msg)
- * @method static void warning($name, $msg)
- * @method static void critical($name, $msg)
- * @method static void emergency($name, $msg)
- * @method static void error($name, $msg)
+ * @method static void info($name, $msg,$context=[])
+ * @method static void alert($name, $msg,$context=[])
+ * @method static void notice($name, $msg,$context=[])
+ * @method static void debug($name, $msg,$context=[])
+ * @method static void warning($name, $msg,$context=[])
+ * @method static void critical($name, $msg,$context=[])
+ * @method static void emergency($name, $msg,$context=[])
+ * @method static void error($name, $msg,$context=[])
  */
 class Logger
 {
@@ -33,13 +33,13 @@ class Logger
             case 'default':
                 return self::defaultHandle($type,$queue);
             default:
-                if(isset(self::$pool[$type])){
-                    return self::$pool[$type];
+                if(isset(self::$pool[$type][$queue])){
+                    return self::$pool[$type][$queue];
                 }
                 if (!is_null(self::$callHandel)){
-                    self::$pool[$type] = call_user_func(self::$callHandel);
+                    self::$pool[$type][$queue] = call_user_func(self::$callHandel,$queue);
                 }
-                return self::$pool[$type];
+                return self::$pool[$type][$queue];
         }
     }
     private static function defaultHandle($type,$queue): \Monolog\Logger
@@ -68,6 +68,10 @@ class Logger
     public static function __callStatic($name, $arguments)
     {
         $log = self::getInstance($name, $arguments[0]);
-        $log->$name($arguments[1]);
+        $context = $arguments[2]??[];
+        if(!is_array($context)){
+            $context = [$context];
+        }
+        $log->$name($arguments[1],$context);
     }
 }

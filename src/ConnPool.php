@@ -4,6 +4,7 @@ namespace Qihu\Queue;
 
 use Qihu\Queue\Drive\RabbitmqFactory;
 use Qihu\Queue\Drive\RedisFactory;
+use Qihu\Queue\Drive\RocketmqFactory;
 
 class ConnPool
 {
@@ -24,6 +25,9 @@ class ConnPool
         switch ($drive) {
             case 'rabbitmq':
                 self::$pool[$queueName] = RabbitmqFactory::createClient($cfg[$drive]);
+                break;
+            case 'rocketmq':
+                self::$pool[$queueName] = RocketmqFactory::createClient($cfg[$drive]);
                 break;
             default:
                 self::$pool[$queueName] = RedisFactory::createClient($cfg[$drive]);
