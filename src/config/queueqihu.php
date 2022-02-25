@@ -9,6 +9,7 @@ return [
         'host' => env('QIHU_REDIS_HOST', '127.0.0.1'),//127.0.0.1
         'port' => env('QIHU_REDIS_PORT', '6379'),
         'password' => env('QIHU_REDIS_PASSWORD', ''),
+        'db' =>env('QIHU_REDIS_DB',0)
     ],
     'rabbitmq' => [
         'host' => env('QIHU_RABBITMQ_HOST', '127.0.0.1'),
@@ -17,7 +18,6 @@ return [
         'password' => env('QIHU_RABBITMQ_PASSWORD', ''),
         'exchange' => env('QIHU_RABBITMQ_EXCHANGE', 'my_exchange'),//交换机名
         'vhost' => env('QIHU_RABBITMQ_VHOST', '/'),//虚拟路径
-        'routing'=>'route',
     ],
     'rocketmq' => [
         'host' => env('QIHU_ROCKETMQ_HOST', '127.0.0.1'),

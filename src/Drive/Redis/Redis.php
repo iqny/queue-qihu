@@ -20,7 +20,7 @@ class Redis implements DriveInterface
         $this->connect($cfg);
     }
 
-    public function ack($ok = true):bool
+    public function ack($getDeliveryTag = true):bool
     {
         return true;
         // TODO: Implement ack() method.
@@ -141,6 +141,9 @@ class Redis implements DriveInterface
         //设置密码
         if (isset($cfg['password']) && !empty($cfg['password'])) {
             $this->client->auth($cfg['password']);
+        }
+        if (isset($cfg['db']) && !empty($cfg['db'])){
+            $this->client->select($cfg['db']);
         }
     }
 

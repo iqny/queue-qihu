@@ -41,6 +41,12 @@ abstract class BaseQueue
         while (self::$running) {
             Signal::SetSigHandler([self::class, 'sigHandler']);
             $this->conn->get($this->queueName, function ($envelope, $queue) {
+                $newTime = date('H', time());
+                $startTime = date('H', $this->pStartTime);
+                if (!self::$running || $newTime != $startTime) {
+                    self::$running = false;
+                    exit(0);
+                }
                 Signal::SetSigHandler([self::class, 'sigHandler']);
                 $data = $envelope->getBody();
 
@@ -73,12 +79,6 @@ abstract class BaseQueue
                 self::$rabbitmqExit = false; //用于信号退出进程
                 $this->count--;
                 if ($this->count <= 0) {
-                    self::$running = false;
-                    exit(0);
-                }
-                $newTime = date('H', time());
-                $startTime = date('H', $this->pStartTime);
-                if (!self::$running || $newTime != $startTime) {
                     self::$running = false;
                     exit(0);
                 }

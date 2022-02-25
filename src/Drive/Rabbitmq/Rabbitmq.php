@@ -22,16 +22,19 @@ class Rabbitmq implements DriveInterface
     private $QMAPQueue = null;
     private $getDeliveryTag = '';
     private $ex = null;
-    private $suffix = '';
+    private $cfg;
 
     public function __construct($cfg)
     {
-        if (isset($cfg['routing'])){
-             $this->suffix = $cfg['routing'];
-        }
+        $this->cfg = $cfg;
         $this->connect($cfg);
     }
 
+    /**
+     * @throws \AMQPExchangeException
+     * @throws \AMQPChannelException
+     * @throws \AMQPConnectionException
+     */
     public function connect($cfg)
     {
         try {
@@ -43,13 +46,7 @@ class Rabbitmq implements DriveInterface
             $this->ex->setType(AMQP_EX_TYPE_DIRECT);
             $this->ex->setFlags(AMQP_DURABLE);//持久化
             $this->ex->declareExchange();
-        } catch (\AMQPConnectionException $e) {
-            Logger::error('rabbitmq', $e->getMessage());
-            throw $e;
-        } catch (\AMQPChannelException $e) {
-            Logger::error('rabbitmq', $e->getMessage());
-            throw $e;
-        } catch (\AMQPExchangeException $e) {
+        } catch (\AMQPConnectionException | \AMQPChannelException | \AMQPExchangeException $e) {
             Logger::error('rabbitmq', $e->getMessage());
             throw $e;
         }
@@ -59,7 +56,7 @@ class Rabbitmq implements DriveInterface
     /**
      * @return bool|mixed
      */
-    public function ack($ok = true): bool
+    public function ack($getDeliveryTag = true): bool
     {
         if ($this->getDeliveryTag) {
             return $this->QMAPQueue->ack($this->getDeliveryTag);
@@ -88,6 +85,11 @@ class Rabbitmq implements DriveInterface
             $this->QMAPQueue->consume($callable);
         } catch (\AMQPQueueException $e) {
             Logger::error('rabbitmq', '[' . $e->getLine() . ']' . $e->getMessage());
+            try {
+                $this->connect($this->cfg);
+            } catch (\AMQPChannelException | \AMQPConnectionException | \AMQPExchangeException $e) {
+                Logger::error('rabbitmq', '[' . $e->getLine() . ']' . $e->getMessage());
+            }
         }
         /*$this->QMAPQueue->consume(function ($envelope, $queue) {
             $body = $envelope->getBody();
@@ -109,7 +111,7 @@ class Rabbitmq implements DriveInterface
     public function append($key, $val)
     {
         $this->setQueue($key);
-        $routingKey = $key . $this->suffix;
+        $routingKey = $key;
         //发送消息到交换机，并返回发送结果
         //delivery_mode:2声明消息持久，持久的队列+持久的消息在RabbitMQ重启后才不会丢失
         if (!is_string($val)) {
@@ -139,14 +141,23 @@ class Rabbitmq implements DriveInterface
     private function setQueue($key)
     {
         //声明路由键
-        $routingKey = $key . $this->suffix;
+        $routingKey = $key;
         //echo "Exchange Status:" . $ex->declareExchange() . "\n";
-        $this->QMAPQueue = new \AMQPQueue($this->channel);
-        $this->QMAPQueue->setName($key);
-        $this->QMAPQueue->setFlags(AMQP_DURABLE);
-        $this->QMAPQueue->declareQueue();
-        $this->QMAPQueue->bind($this->ex->getName(), $routingKey);
-        $this->getDeliveryTag = '';
+        try {
+            $this->QMAPQueue = new \AMQPQueue($this->channel);
+            $this->QMAPQueue->setName($key);
+            $this->QMAPQueue->setFlags(AMQP_DURABLE);
+            $this->QMAPQueue->declareQueue();
+            $this->QMAPQueue->bind($this->ex->getName(), $routingKey);
+            $this->getDeliveryTag = '';
+        } catch (\AMQPConnectionException $e) {
+            try {
+                $this->connect($this->cfg);
+            } catch (\AMQPChannelException | \AMQPConnectionException | \AMQPExchangeException $e) {
+                Logger::error('rabbitmq', '[' . $e->getLine() . ']' . $e->getMessage());
+            }
+        } catch (\AMQPQueueException $e) {
+        }
 
     }
 }

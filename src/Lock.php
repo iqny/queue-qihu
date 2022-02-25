@@ -33,6 +33,9 @@ class Lock
         if (isset($cfg['redis']['password'])) {
             self::$conn->auth($cfg['redis']['password']);
         }
+        if (isset($cfg['db']) && !empty($cfg['db'])){
+            self::$conn->select($cfg['db']);
+        }
     }
 
     private static function close()
