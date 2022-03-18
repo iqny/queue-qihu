@@ -101,7 +101,7 @@ class QueueQihu
             $this->start($queueName, $cfg);
 
         }
-        $this->redis->close();
+        //$this->redis->close();
     }
 
     private function start($queueName, $cfg)
@@ -117,9 +117,9 @@ class QueueQihu
             if (PHP_OS == 'Linux') {
                 cli_set_process_title(sprintf("%s %s slave",self::QUEUE_MONITOR_NAME,$queueName));
             }
-            $redisClient = RedisFactory::createClient($this->cfg['redis']);
-            $redisClient->hSet(self::QUEUE_MONITOR_NAME, $queueName, posix_getpid());
-            $redisClient->close();
+            //$redisClient = RedisFactory::createClient($this->cfg['redis']);
+            $this->redis->hSet(self::QUEUE_MONITOR_NAME, $queueName, posix_getpid());
+            $this->redis->close();
             Worker::start($queueName, $cfg);
         }
 
