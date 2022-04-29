@@ -88,6 +88,7 @@ class Rocketmq implements DriveInterface
                 $numOfMessages, // 一次最多消费5条(最多可设置为16条)
                 $waitSeconds // 长轮询时间1秒（最多可设置为30秒）
             );
+            $this->receiptHandles = [];
             foreach ($messages as $message) {
                 $this->receiptHandles[] = $message->getReceiptHandle();
                 $messageBody[] = $message->getMessageBody();
